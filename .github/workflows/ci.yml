@@ -1,0 +1,23 @@
+name: Verify
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  test-inventory-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      - name: Build Quarkus service
+        run: |
+          cd ./inventory-app
+          ./mvnw -B test
