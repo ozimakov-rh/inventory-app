@@ -1,37 +1,41 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: inventory-app
+  name: inventory-frontend
   labels:
-    app: inventory-app
+    app: inventory-frontend
     app.kubernetes.io/part-of: inventory
-    app.openshift.io/runtime: quarkus
+    app.openshift.io/runtime: nodejs
+  annotations:
+    app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"inventory-app"}]'
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: inventory-app
+      app: inventory-frontend
   template:
     metadata:
       labels:
-        app: inventory-app
-        deployment: inventory-app
+        app: inventory-frontend
+        deployment: inventory-frontend
     spec:
       containers:
-        - name: inventory-app
-          image: quay.io/rh_ee_ozimakov/inventory-app:latest
-          imagePullPolicy: Always
+        - name: inventory-frontend
+          image: swaggerapi/swagger-ui:latest
           ports:
             - containerPort: 8080
               protocol: TCP
+          env:
+            - name: SWAGGER_JSON_URL
+              value: https://inventory-app-default.apps.vptvt.dynamic.redhatworkshops.io/q/openapi
       restartPolicy: Always
 ---
 kind: Service
 apiVersion: v1
 metadata:
-  name: inventory-app
+  name: inventory-frontend
   labels:
-    app: inventory-app
+    app: inventory-frontend
     app.kubernetes.io/part-of: inventory
 spec:
   type: ClusterIP
@@ -41,20 +45,20 @@ spec:
       protocol: TCP
       targetPort: 8080
   selector:
-    app: inventory-app
-    deployment: inventory-app
+    app: inventory-frontend
+    deployment: inventory-frontend
 ---
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
-  name: inventory-app
+  name: inventory-frontend
   labels:
-    app: inventory-app
+    app: inventory-frontend
     app.kubernetes.io/part-of: inventory
 spec:
   to:
     kind: Service
-    name: inventory-app
+    name: inventory-frontend
     weight: 100
   port:
     targetPort: 8080-tcp
@@ -62,4 +66,3 @@ spec:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
   wildcardPolicy: None
-
