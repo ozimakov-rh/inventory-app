@@ -1,0 +1,71 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  labels:
+    app: inventory
+    app.kubernetes.io/part-of: inventory
+  name: inventory-db-01
+spec:
+  dataVolumeTemplates:
+    - apiVersion: cdi.kubevirt.io/v1beta1
+      kind: DataVolume
+      metadata:
+        creationTimestamp: null
+        name: inventory-db-01
+      spec:
+        source:
+          pvc:
+            name: inventory-db-00
+            namespace: default
+        storage:
+          resources:
+            requests:
+              storage: 30Gi
+  running: true
+  template:
+    metadata:
+      labels:
+        app: inventory
+        kubevirt.io/domain: inventory-db-01
+    spec:
+      domain:
+        cpu:
+          cores: 1
+          sockets: 2
+          threads: 1
+        devices:
+          disks:
+            - disk:
+                bus: virtio
+              name: rootdisk
+            - disk:
+                bus: virtio
+              name: cloudinitdisk
+          interfaces:
+            - masquerade: { }
+              name: default
+          rng: { }
+        features:
+          smm:
+            enabled: true
+        firmware:
+          bootloader:
+            efi: { }
+        resources:
+          requests:
+            memory: 2Gi
+      evictionStrategy: LiveMigrate
+      networks:
+        - name: default
+          pod: { }
+      volumes:
+        - dataVolume:
+            name: inventory-db-01
+          name: rootdisk
+        - cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              user: fedora
+              password: 2enr-d8mb-bpa4
+              chpasswd: { expire: False }
+          name: cloudinitdisk

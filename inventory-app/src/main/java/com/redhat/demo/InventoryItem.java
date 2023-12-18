@@ -1,6 +1,5 @@
 package com.redhat.demo;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
 
 import java.time.Instant;
